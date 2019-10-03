@@ -1,0 +1,7 @@
+*.o
+*~
+zmac.c
+zout
+zmac
+doc
+doc.inl
