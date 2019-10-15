@@ -1,3 +1,9 @@
+#ifndef _LD80_LD80_H_INCLUDED
+#define _LD80_LD80_H_INCLUDED
+
+#ifdef VERSION
+#undef VERSION
+#endif
 #define VERSION     "0.5-dg-1"
 
 #define	NAMELEN		8
@@ -190,5 +196,7 @@ extern void hdestroy();
 
 #define strdup _strdup
 #define unlink _unlink
+
+#endif
 
 #endif
