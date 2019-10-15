@@ -1,0 +1,15 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install OS packages for building
+      run: sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install build-essential tar bzip2 gcc g++ make wget gawk sed coreutils file vim-common libc-bin fakeroot curl zip alien
+    - name: Compile from source now
+      run: cd src && make
