@@ -1,5 +1,6 @@
-VERSION = 0.5
-CFLAGS = -g -Wall -Wstrict-prototypes -DVERSION=\"$(VERSION)\"
+VERSION	= 0.5
+CC	= gcc
+CFLAGS	= -Wall -Wstrict-prototypes -DVERSION=\"$(VERSION)\"
 CFLAGS := $(CFLAGS) -DDEBUG
 
 .SUFFIXES: .pod .1 .html .ps
@@ -9,7 +10,7 @@ MANPAGES = ld80.1
 PSFILES = ld80.ps
 
 ld80:		$(OBJS)
-		gcc -g -o ld80 $(OBJS)
+		$(CC) $(CFLAGS) -o ld80 $(OBJS)
 
 main.o:		ld80.h
 

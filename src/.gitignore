@@ -1,0 +1,11 @@
+*.o
+*~
+*.lst
+*.rel
+*.sym
+*.com
+*.cim
+*.temp
+*.tmp
+*.exp
+*.img

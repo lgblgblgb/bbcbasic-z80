@@ -1,51 +1,58 @@
-ZMAC = ../../.obj/third_party/zmac/zmac/zmac
-LD80 = ../../.obj/third_party/ld80/ld80/ld80
+TARGETS		= bbcbasic.com bbcbasic-cpm.com
 
-ZMAC = ../3rd_party/zmac/zmac
-LD80 = ../3rd_party/ld80/ld80
+ZMAC		= ../3rd_party/zmac/zmac
+LD80		= ../3rd_party/ld80/ld80
+BINSTRIP	= ../3rd_party/binstrip/binstrip
 
+TOOLS		= $(ZMAC) $(LD80) $(BINSTRIP)
 
-#$(TARGETOBJPREFIX)%.o: %.c $(DEPALL)
-#ifeq ($(ASMOUT), yes)
-#        $(CC) $(CFLAGS) -Wa,-adhln -masm=intel -g -c -o /dev/null $< > $(@:.o=.s)
-#endif
-#        $(CC) $(CFLAGS) -c -o $@ $<
+OBJS		= main.rel exec.rel eval.rel fpp.rel sorry.rel cmos.rel
+START_MAIN	= 0200
+OBJ_ALIGNED	= ram.rel
 
-all:	bbcbasic.com bbcbasic-hacked.com
+ALLDEP		= Makefile
 
-%.rel: %.s
-	@test -x $(ZMAC) || $(MAKE) -C $(shell dirname $(ZMAC))
+all:	$(TARGETS)
+
+$(TOOLS):
+	$(MAKE) -C $(dir $@)
+
+%.rel:	%.s $(ZMAC) $(ALLDEP)
 	$(ZMAC) --zmac -m --rel7 -z -o $@ -o $(@:.rel=.lst) $<
 
-#.obj/third_party/ld80/ld80/ld80 -m -O bin -o .obj/third_party/bbcbasic/bbcbasic_img/bbcbasic_img.cim -s .obj/third_party/bbcbasic/bbcbasic_img/bbcbasic_img.cim.sym .obj/third_party/bbcbasic/patch/patch.rel -P0200 .obj/third_party/bbcbasic/main/main.rel .obj/third_party/bbcbasic/exec/exec.rel .obj/third_party/bbcbasic/eval/eval.rel .obj/third_party/bbcbasic/fpp/fpp.rel .obj/third_party/bbcbasic/sorry/sorry.rel .obj/third_party/bbcbasic/cmos/cmos.rel -P3b00 .obj/third_party/bbcbasic/ram/ram.rel 
+#%.img:	patch-%.rel $(OBJS) $(OBJ_ALIGNED) $(LD80) $(ALLDEP)
+#	@echo "*** Linking $@ from $< $(OBJS) $(OBJ_ALIGNED)"
+#	@# First we link without alignment of ram.rel, which is BAD but we can figure out the needed alignment from this (from the sym file)
+#	$(LD80) -m -O bin -o $@ -s $(@:.img=.sym) $< -P$(START_MAIN) $(OBJS) $(OBJ_ALIGNED)
+#	@rm -f $@
+#	@# Figure out the needed alignment ...
+#	gawk '$$1 == "ACCS" { a=strtonum("0x"$$2); if (and(a,255)) printf("%04x\n",and(a,65280)+256); else print $$2; }' $(@:.img=.sym) > $(@:.img=.aligned.sym)
+#	@rm -f $(@:.img=.sym)
+#	@echo "+++ $(OBJ_ALIGNED) alignment is calculated to be 0x`cat $(@:.img=.aligned.sym)`"
+#	@# Now, we can do the real linkage, with the calculated alignment. Ehm. Maybe I'm lame and there is a way to tell LD80 to do some alignment at its own?
+#	$(LD80) -m -O bin -o $@ -s $(@:.img=.sym) $< -P$(START_MAIN) $(OBJS) -P`cat $(@:.img=.aligned.sym)` $(OBJ_ALIGNED)
+#	@rm -f $(@:.img=.aligned.sym)
 
-bbcbasic_img.cim: exec.rel patch.rel fpp.rel main.rel ram.rel sorry.rel eval.rel cmos.rel
-	@test -x $(LD80) || $(MAKE) -C $(shell dirname $(LD80))
-	$(LD80) -m -O bin -o bbcbasic_img.cim -s bbcbasic_img.cim.sym patch.rel -P0200 main.rel exec.rel eval.rel fpp.rel sorry.rel cmos.rel -P3b00 ram.rel 
+%.img:	patch-%.rel $(OBJS) $(OBJ_ALIGNED) $(LD80) $(ALLDEP)
+	@#echo "*** Linking $@ from $< $(OBJS) $(OBJ_ALIGNED)"
+	$(LD80) -m -O bin -o $@ -s $(@:.img=.sym) $< -P$(START_MAIN) $(OBJS) -P%0100 $(OBJ_ALIGNED)
 
-bbcbasic.com: bbcbasic_img.cim
-	dd if=bbcbasic_img.cim of=bbcbasic.com status=none bs=128 skip=2
+%.com:	%.img $(ALLDEP)
+	dd if=$< of=$@ status=none bs=128 skip=2
+	@#echo "*** Output $@ is ready from image $<"
 
-bbcbasic-hacked.com: bbcbasic_img.cim
-	dd if=bbcbasic_img.cim of=bbcbasic-hacked.com.temp status=none bs=128 skip=4
-	cat patch_old.bin bbcbasic-hacked.com.temp > bbcbasic-hacked.com
-
+strip:	$(TARGETS) $(BINSTRIP) $(ALLDEP)
+	@echo "*** WARNING *** Do not use strip unless you are sure the code contains a routine which makes the stripped area zero at least on run-time ***"
+	for a in $(TARGETS) ; do $(BINSTRIP) $$a ; done
 
 clean:
-	rm -f *.rel *.lst *.com *.sym *.cim *.tmp *.temp
+	rm -f *.rel *.lst *.com *.sym *.cim *.img *.tmp *.temp
 
 distclean:
-	$(MAKE) -C $(shell dirname $(ZMAC)) distclean
-	$(MAKE) -C $(shell dirname $(LD80)) distclean
+	for a in $(dir $(TOOLS)) ; do $(MAKE) -C $$a distclean ; done
 	$(MAKE) clean
 	rm -f *~ .*~
 
+.SECONDARY:
 
-alla:
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/exec/exec.rel -o .obj/third_party/bbcbasic/exec/exec.lst  third_party/bbcbasic/exec.z80 
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/patch/patch.rel -o .obj/third_party/bbcbasic/patch/patch.lst  third_party/bbcbasic/patch.z80 
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/fpp/fpp.rel -o .obj/third_party/bbcbasic/fpp/fpp.lst  third_party/bbcbasic/fpp.z80 
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/main/main.rel -o .obj/third_party/bbcbasic/main/main.lst  third_party/bbcbasic/main.z80 
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/ram/ram.rel -o .obj/third_party/bbcbasic/ram/ram.lst  third_party/bbcbasic/ram.z80 
-	$(ZMAC) --zmac -m --rel7 -z -o .obj/third_party/bbcbasic/sorry/sorry.rel -o .obj/third_party/bbcbasic/sorry/sorry.lst  third_party/bbcbasic/sorry.z80 
-
+.PHONY:	all clean distclean strip

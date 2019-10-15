@@ -1,15 +1,16 @@
 # On Mac OSX gcc is required as clang complains bitterly about the old style
 # C delarations used.
 
-CC=gcc -O2
-CXX=g++
-DEP=zmac.o mio.o doc.o zi80dis.o
+CC	= gcc
+CFLAGS	= -O2 -Wall
+CXX	= g++
+DEP	= zmac.o mio.o doc.o zi80dis.o
 
 zmac: doc.inl $(DEP)
 	$(CXX) -Wall $(CXXFLAGS) -o zmac $(DEP)
 
 doc.inl: doc.c doc.txt
-	$(CC) -Wall -DMK_DOC -o doc doc.c
+	$(CC) $(CFLAGS) -DMK_DOC -o doc doc.c
 	./doc >/dev/null
 
 clean:
@@ -18,4 +19,3 @@ clean:
 distclean:
 	$(MAKE) clean
 	rm -f *~ .*~ doc
-
