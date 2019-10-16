@@ -9,15 +9,15 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: LGB: Install OS packages for building
+    - name: Install OS packages for building
       run: sudo apt-get -yq --no-install-suggests --no-install-recommends --force-yes install build-essential tar bzip2 gcc g++ make wget gawk sed coreutils file libc-bin bison lsb-release deborphan util-linux pciutils bash
-    - name: LGB: Remove unwanted packages
+    - name: Remove unwanted packages
       run: sudo apt-get -yq --purge --force-yes autoremove ; sudo apt-get -yq --purge --force-yes remove `deborphan` ; true
-    - name: LGB: Show system status
+    - name: Show system status
       run: cat /etc/debian_version ; lsb_release -a ; yacc --version | head -n 1 ; gcc --version | head -n 1 ; g++ --version | head -n 1 ; make --version | head -n 1 ; git --version | head -n 1 ; gawk --version | head -n 1 ; bash --version | head -n 1 ; uname -a ; id -a ; echo "CWD: `pwd`" ; echo "PATH: $PATH" ; echo "Hostname: `hostname`" ; lscpu ; lspci ; uptime ; /sbin/ip a ; df -h . ; ls -la . ; true
-    - name: LGB: List of all installed packages
+    - name: List of all installed packages
       run: dpkg -l | cat ; true
-    - name: LGB: Compiling NOW!
+    - name: Compiling NOW!
       run: cd src && make
-    - name: LGB: Show result
+    - name: Show result
       run: ls -l src/*.com ; md5sum src/*.com ; sha512sum src/*.com ; true
