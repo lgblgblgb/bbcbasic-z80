@@ -14,7 +14,7 @@ jobs:
     - name: Remove unwanted packages
       run: sudo apt-get -yq --purge --force-yes autoremove ; sudo apt-get -yq --purge --force-yes remove `deborphan` ; true
     - name: Show system status
-      run: cat /etc/debian_version ; lsb_release -a ; yacc --version | head -n 1 ; gcc --version | head -n 1 ; g++ --version | head -n 1 ; make --version | head -n 1 ; git --version | head -n 1 ; gawk --version | head -n 1 ; bash --version | head -n 1 ; uname -a ; id -a ; echo "CWD: `pwd`" ; echo "PATH: $PATH" ; echo "Hostname: `hostname`" ; lscpu ; lspci ; uptime ; /sbin/ip a ; df -h . ; ls -la . ; true
+      run: cat /etc/debian_version ; lsb_release -a ; yacc --version | head -n 1 ; gcc --version | head -n 1 ; g++ --version | head -n 1 ; make --version | head -n 1 ; git --version | head -n 1 ; gawk --version | head -n 1 ; bash --version | head -n 1 ; uname -a ; id -a ; echo "CWD is `pwd`" ; echo "PATH is $PATH" ; echo "Hostname is `hostname`" ; lscpu ; lspci ; uptime ; /sbin/ip a ; df -h . ; ls -la . ; true
     - name: List of all installed packages
       run: dpkg -l | cat ; true
     - name: Compiling NOW!
